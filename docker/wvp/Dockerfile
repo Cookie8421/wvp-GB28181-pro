@@ -22,7 +22,8 @@ COPY my.cnf /etc/mysql/mysql.conf.d/mysqld.cnf
 # 初始化数据库并设置root密码
 RUN mysqld --initialize-insecure --user=mysql && \
     service mysql start && \
-    mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root123';" && \
+    mysql -e "CREATE DATABASE wvp2;" && \
+    mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_antive_password BY 'root123';" && \
     service mysql stop
 
 # 暴露端口
