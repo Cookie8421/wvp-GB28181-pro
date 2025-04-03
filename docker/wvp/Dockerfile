@@ -1,3 +1,40 @@
+# 使用官方Ubuntu 20.04镜像
+FROM ubuntu:20.04
+
+# 设置非交互式安装（避免提示）
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 安装MySQL 8.0
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    mysql-server \
+    mysql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# 配置MySQL
+RUN mkdir -p /var/run/mysqld && \
+    chown -R mysql:mysql /var/run/mysqld && \
+    chmod 777 /var/run/mysqld
+
+# 复制自定义配置文件
+COPY my.cnf /etc/mysql/mysql.conf.d/mysqld.cnf
+
+# 初始化数据库并设置root密码
+RUN mysqld --initialize-insecure --user=mysql && \
+    service mysql start && \
+    mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root123';" && \
+    service mysql stop
+
+# 暴露端口
+EXPOSE 3306
+
+# 启动脚本
+COPY start-mysql.sh /start-mysql.sh
+RUN chmod +x /start-mysql.sh
+
+# 容器启动命令
+CMD ["/start-mysql.sh"]
+
 FROM ubuntu:20.04   as   build
 
 ARG gitUrl="https://gitee.com/pan648540858"
@@ -14,7 +51,7 @@ RUN cd /home && \
         cp maven/settings.xml /usr/share/maven/conf/
 
 RUN cd /home && \
-        git clone "${gitUrl}/wvp-GB28181-pro.git"
+        git clone "https://github.com/Cookie8421/wvp-GB28181-pro.git"
 RUN cd /home/wvp-GB28181-pro/web_src && \
         npm install && \
         npm run build
